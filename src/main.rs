@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use async_trait::async_trait;
 use axum::{response::IntoResponse, routing::get, Router};
 use shuttle_axum::ShuttleAxum;
@@ -5,6 +7,7 @@ use shuttle_axum::ShuttleAxum;
 use shuttle_crond::{builder::*, *};
 use shuttle_runtime::tracing::debug;
 
+#[derive(Clone)]
 struct MyJob {}
 
 #[async_trait]
@@ -31,8 +34,17 @@ async fn axum_with_crond(#[Crond] crond: CrondInstance) -> ShuttleAxum {
     let my_job = MyJob {};
 
     debug!("Adding job...");
-    crond.add_job(my_job).await;
+    let hdl = crond.add_job(my_job.clone()).await;
     debug!("Job added");
+
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_secs(5)).await;
+        debug!("Aborting job...");
+        hdl.abort();
+
+        debug!("Starting another job...");
+        crond.add_job(my_job).await;
+    });
 
     Ok(router.into())
 }

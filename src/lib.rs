@@ -5,7 +5,10 @@ use chrono::Utc;
 use cron::Schedule;
 use serde::{Deserialize, Serialize};
 use shuttle_runtime::tracing::debug;
-use tokio::{task::JoinHandle, time::sleep};
+use tokio::{
+    task::{AbortHandle, JoinHandle},
+    time::sleep,
+};
 
 pub mod builder;
 
@@ -21,13 +24,13 @@ pub trait Job {
 pub struct CrondInstance {}
 
 impl CrondInstance {
-    pub async fn add_job(&self, job: impl Job + Send + 'static) -> JoinHandle<()> {
+    pub async fn add_job(&self, job: impl Job + Send + 'static) -> AbortHandle {
         debug!("Spawning new job");
         let hdl = tokio::spawn(async move {
             CrondInstance::run_job(job).await;
         });
 
-        hdl
+        hdl.abort_handle()
     }
 
     async fn run_job(mut job: impl Job) {
