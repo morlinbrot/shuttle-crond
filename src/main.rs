@@ -7,6 +7,7 @@ use shuttle_axum::ShuttleAxum;
 use shuttle_crond::{builder::*, *};
 use shuttle_runtime::tracing::debug;
 
+mod mastodon;
 mod qotw;
 
 #[derive(Clone)]
@@ -31,7 +32,9 @@ async fn hello() -> impl IntoResponse {
 
 #[tokio::main]
 async fn main() {
-    qotw::qotw().await;
+    // qotw::qotw().await;
+
+    mastodon::connect().await.unwrap();
 }
 
 // #[shuttle_runtime::main]

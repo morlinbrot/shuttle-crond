@@ -11,6 +11,8 @@ async-trait = "0.1.68"
 axum = "0.6.18"
 chrono = "0.4.24"
 cron = "0.12.0"
+dotenvy = "0.15.7"
+mastodon-async = { version = "1.2.1", features = ["toml", "mt", "env"] }
 octocrab = "0.23.0"
 serde = "1.0.163"
 shuttle-axum = "0.16.0"
