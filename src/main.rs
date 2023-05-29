@@ -7,6 +7,8 @@ use shuttle_axum::ShuttleAxum;
 use shuttle_crond::{builder::*, *};
 use shuttle_runtime::tracing::debug;
 
+mod qotw;
+
 #[derive(Clone)]
 struct MyJob {}
 
@@ -27,24 +29,29 @@ async fn hello() -> impl IntoResponse {
     "Hello, crond!".to_string()
 }
 
-#[shuttle_runtime::main]
-async fn axum_with_crond(#[Crond] crond: CrondInstance) -> ShuttleAxum {
-    let router = Router::new().route("/", get(hello));
-
-    let my_job = MyJob {};
-
-    debug!("Adding job...");
-    let hdl = crond.add_job(my_job.clone()).await;
-    debug!("Job added");
-
-    tokio::spawn(async move {
-        tokio::time::sleep(Duration::from_secs(5)).await;
-        debug!("Aborting job...");
-        hdl.abort();
-
-        debug!("Starting another job...");
-        crond.add_job(my_job).await;
-    });
-
-    Ok(router.into())
+#[tokio::main]
+async fn main() {
+    qotw::qotw().await;
 }
+
+// #[shuttle_runtime::main]
+// async fn axum_with_crond(#[Crond] crond: CrondInstance) -> ShuttleAxum {
+//     let router = Router::new().route("/", get(hello));
+
+//     let my_job = MyJob {};
+
+//     debug!("Adding job...");
+//     let hdl = crond.add_job(my_job.clone()).await;
+//     debug!("Job added");
+
+//     tokio::spawn(async move {
+//         tokio::time::sleep(Duration::from_secs(5)).await;
+//         debug!("Aborting job...");
+//         hdl.abort();
+
+//         debug!("Starting another job...");
+//         crond.add_job(my_job).await;
+//     });
+
+//     Ok(router.into())
+// }
